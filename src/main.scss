@@ -1,0 +1,145 @@
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+input:disabled,
+textarea:disabled {
+  background-color: transparent;
+}
+
+header {
+  background: #666;
+  display: flex;
+  gap: 20px;
+  padding: 10px 10px;
+  align-items: center;
+
+  & a {
+    font-family: "Roboto", sans-serif;
+    font-size: 20px;
+    color: #b6b6b6;
+    text-decoration: none;
+  }
+}
+
+.title-name {
+  font-family: "Roboto", sans-serif;
+  font-size: 22px;
+  color: white;
+  text-decoration: none;
+}
+
+.header__link-active {
+  color: white;
+}
+
+.article-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 15px;
+  border: 1px solid black;
+}
+
+.article-info__title-name {
+  color: inherit;
+  font-family: "Roboto", sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  border: none;
+}
+
+.article-info__body-name {
+  color: inherit;
+
+  min-height: 80px;
+  font-family: "Roboto", sans-serif;
+  border: none;
+  resize: none;
+  text-align: justify;
+}
+
+.article-info__buttons {
+  display: flex;
+}
+
+.article-info__btn {
+  padding: 8px 12px;
+  background: none;
+  color: #707377;
+  border: 1px solid #707377;
+
+  &:last-child {
+    border-left: none;
+  }
+
+  &:first-child {
+    border-right: none;
+  }
+
+  &:hover {
+    transition: 500ms;
+    background-color: #666;
+    color: white;
+  }
+}
+
+.btn {
+  margin: 20px 0;
+  padding: 10px 15px;
+  background: rgb(53, 100, 255);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  transition: 200ms;
+
+  &:hover {
+    transition: 500ms;
+    background: rgb(43, 81, 206);
+  }
+}
+
+.main-wrapper {
+  text-align: center;
+}
+
+.hidden {
+  display: none;
+}
+
+.main-wrapper__title {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.container {
+  max-width: 1200px;
+  margin: auto;
+}
+
+.main-warpper__buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.links-pages {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  padding: 20px;
+  background-color: #666;
+
+  & a {
+    color: white;
+    text-decoration: none;
+    font-family: "Roboto", sans-serif;
+    font-size: 20px;
+  }
+
+  & .active-link {
+    color: black;
+  }
+}
