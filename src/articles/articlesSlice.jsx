@@ -14,6 +14,7 @@ const articlesSlice = createSlice({
         state.articles[0].push(titleValue);
         state.articles[1].push(bodyValue);
       } else {
+        console.log('asadsad')
         state.articles.push(action.payload);
       }
     },
@@ -28,8 +29,8 @@ const articlesSlice = createSlice({
       );
 
       if (articleUpdateCurrentTitle && articleUpdateCurrentBody) {
-        articleUpdateCurrentTitle.content = title
-        articleUpdateCurrentBody.content = body
+        articleUpdateCurrentTitle.content = title;
+        articleUpdateCurrentBody.content = body;
       }
     },
     articlesAddStyle(state, action) {
@@ -50,6 +51,10 @@ const articlesSlice = createSlice({
         currentStyle.content = content;
       }
     },
+    articleDelete(state, action) {
+      const { id } = action.payload;
+
+    },
   },
 });
 
@@ -58,6 +63,7 @@ export const {
   articlesUpdate,
   articlesAddStyle,
   articlesUpdateStyle,
+  articleDelete,
 } = articlesSlice.actions;
 
 export default articlesSlice.reducer;

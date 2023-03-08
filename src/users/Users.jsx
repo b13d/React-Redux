@@ -1,47 +1,34 @@
 import React, { useRef, useState, useEffect } from "react";
 
-import "./articles.scss";
+import "./users.scss";
 
 import axios from "axios";
 
-let tempAxios = axios
-  .get("https://jsonplaceholder.typicode.com/posts")
-  .then(function (response) {
-    // handle success
-
-    return response.data;
-  })
-  .catch(function (error) {
-    // handle error
-    console.log(error);
-  });
-
-export function Articles() {
-  const [arrArticles, setArticles] = useState(getStoredState);
+export function Users() {
+  const [arrUsers, setUsers] = useState(getStoredState);
   const [modalInfo, setModalInfo] = useState("");
-  const [countArticles, setCountArticles] = useState(3);
+  const [countUsers, setCountUsers] = useState(3);
   const [modal, toogleModal] = useState("modal hidden");
   const [modalBackground, toogleModalBackground] = useState(
     "modalBackground hidden"
   );
 
   const [modalClose, toogleModalClose] = useState("modalClose hidden");
-  const [lastId, setLastId] = useState(101);
+  const [lastId, setLastId] = useState(11);
   const [showMoreBtn, toogleShowMoreBtn] = useState("show-more-btn");
-  const [inputValue, setInputValue] = useState("");
-  const [textareaValue, setTextarea] = useState("");
   const [gridTemplate, setGridTemplate] = useState("30% 30% 30%"); // количество статей в ряд
 
-  const refInput = useRef();
-  const refTextarea = useRef();
-
-  console.log("countArticles = " + countArticles);
+  const refEmailInput = useRef();
+  const refNameInput = useRef();
+  const refPhoneInput = useRef();
+  const refUsernameInput = useRef();
+  const refWebsiteInput = useRef();
 
   const styleColumns = {
     gridTemplateColumns: gridTemplate,
   };
 
-  const styleArticle = (id, idStyle) => {
+  const styleUser = (id, idStyle) => {
     let ranNumber = Math.floor(Math.random() * 3);
 
     let styleColors = {};
@@ -84,56 +71,74 @@ export function Articles() {
   console.log("первый рендер");
 
   function getStoredState(count) {
-    if (count > 100) {
+    if (count > 10) {
       toogleShowMoreBtn("show-more-btn hidden");
     }
+
+    let temp = axios
+      .get("https://jsonplaceholder.typicode.com/users")
+      .then(function (response) {
+        // handle success
+
+        return response.data;
+      })
+      .catch(function (error) {
+        // handle error
+        console.log(error);
+      });
+
     if (count === undefined) {
-      tempAxios.then((data) => {
+      temp.then((data) => {
         let arr = [];
 
-        for (let i = 0; i < countArticles; i++) {
-          let tempAxios = styleArticle(data[i].id);
+        for (let i = 0; i < countUsers; i++) {
+          let temp = styleUser(data[i].id);
 
           // заполнение articles divs *** пометка ***
           arr.push({
-            userId: data[i].userId,
             id: data[i].id,
-            title: data[i].title,
-            body: data[i].body,
-            idStyle: tempAxios.id,
-            color: tempAxios.color,
-            backgroundColor: tempAxios.backgroundColor,
+            address: data[i].address,
+            company: data[i].company,
+            email: data[i].email,
+            name: data[i].name,
+            phone: data[i].phone,
+            username: data[i].username,
+            website: data[i].website,
+            idStyle: temp.id,
+            color: temp.color,
+            backgroundColor: temp.backgroundColor,
           });
         }
 
         // console.log(data);
-        setArticles(arr);
+        setUsers(arr);
       });
     } else {
-      tempAxios.then((data) => {
+      temp.then((data) => {
         let arr = [];
 
-        for (let i = arrArticles.length; i < (count > 100 ? 100 : count); i++) {
+        for (let i = countUsers; i < (count > 10 ? 10 : count); i++) {
           // заполнение articles divs *** пометка ***
-          let tempAxios = styleArticle(data[i].id);
-
-          console.log(countArticles);
-          console.log(count);
+          let temp = styleUser(data[i].id);
 
           arr.push({
-            userId: data[i].userId,
             id: data[i].id,
-            title: data[i].title,
-            body: data[i].body,
-            idStyle: tempAxios.id,
-            color: tempAxios.color,
-            backgroundColor: tempAxios.backgroundColor,
+            address: data[i].address,
+            company: data[i].company,
+            email: data[i].email,
+            name: data[i].name,
+            phone: data[i].phone,
+            username: data[i].username,
+            website: data[i].website,
+            idStyle: temp.id,
+            color: temp.color,
+            backgroundColor: temp.backgroundColor,
           });
         }
 
         // console.log(data);
-        setArticles((arrArticles) => {
-          let temp = [...arrArticles, ...arr];
+        setUsers((arrUsers) => {
+          let temp = [...arrUsers, ...arr];
           return temp;
         });
       });
@@ -147,7 +152,7 @@ export function Articles() {
     });
   }
 
-  async function addArticles() {
+  async function addUserForm() {
     toogleModal("modal");
     toogleModalBackground("modalBackground");
     toogleModalClose("modalClose");
@@ -156,31 +161,36 @@ export function Articles() {
 
     modalTemp = (
       <>
-        <label>Title: </label>
-        <input ref={refInput} type="text" />
-        <label>Body: </label>
-        <textarea ref={refTextarea} rows={5} type="text" />
-        <button onClick={() => addArt()}>Create</button>
+        <label>Name: </label>
+        <input ref={refNameInput} type="text" />
+        <label>Email: </label>
+        <input ref={refEmailInput} type="email" />
+        <label>Phone: </label>
+        <input ref={refPhoneInput} type="phone" />
+        <label>Username: </label>
+        <input ref={refUsernameInput} type="text" />
+        <label>Website: </label>
+        <input ref={refWebsiteInput} type="text" />
+        <button onClick={() => addUser()}>Create</button>
       </>
     );
 
-    function addArt() {
+    async function addUser() {
       toogleModal("modal hidden");
       toogleModalBackground("modalBackground hidden");
       toogleModalClose("modalClose hidden");
 
-      setArticles((value) => {
-        console.log(refInput.current.value);
-        console.log(refTextarea.current.value);
-
+      await setUsers((value) => {
         let arr = [];
-        let tempStyle = styleArticle(lastId);
+        let tempStyle = styleUser(lastId);
 
         let temp = {
-          userId: 10,
           id: lastId,
-          title: refInput.current.value,
-          body: refTextarea.current.value,
+          email: refEmailInput.current.value,
+          name: refNameInput.current.value,
+          phone: refPhoneInput.current.value,
+          username: refUsernameInput.current.value,
+          website: refWebsiteInput.current.value,
           idStyle: tempStyle.id,
           color: tempStyle.color,
           backgroundColor: tempStyle.backgroundColor,
@@ -194,6 +204,8 @@ export function Articles() {
 
         return arr;
       });
+
+      setLastId((value) => value + 1);
     }
 
     console.log(modalTemp);
@@ -201,12 +213,12 @@ export function Articles() {
     setModalInfo(modalTemp);
   }
 
-  async function updateArticles(id) {
+  async function updateUsers(id) {
     toogleModal("modal");
     toogleModalBackground("modalBackground");
     toogleModalClose("modalClose");
 
-    setArticles((value) => {
+    setUsers((value) => {
       let modalTemp = {};
       let valueInput = "";
       let valueTextarea = "";
@@ -234,7 +246,7 @@ export function Articles() {
                   return value.body;
                 })}
               />
-              <button onClick={() => changeArticle(value.id)}>Update</button>
+              <button onClick={() => changeUser(value.id)}>Update</button>
             </>
           );
         }
@@ -248,7 +260,7 @@ export function Articles() {
     });
   }
 
-  function deleteArticles(id) {
+  function deleteUsers(id) {
     toogleModal("modal");
     toogleModalBackground("modalBackground");
     toogleModalClose("modalClose");
@@ -256,15 +268,15 @@ export function Articles() {
     let modalTemp = (
       <>
         <label>Вы действительно хотите удалить эту запись?</label>
-        <button onClick={() => deleteArticle(true)}>Да</button>
+        <button onClick={() => deleteUser(true)}>Да</button>
         <button onClick={() => closeModal(false)}>Нет</button>
       </>
     );
 
     setModalInfo(modalTemp);
 
-    let deleteArticle = () => {
-      setArticles((value) => {
+    let deleteUser = () => {
+      setUsers((value) => {
         let arr = [];
 
         value.map((value) => {
@@ -284,7 +296,7 @@ export function Articles() {
   }
 
   function changeColor(id) {
-    let arr = arrArticles.map((value, index) => {
+    let arr = arrUsers.map((value, index) => {
       if (value.id === id) {
         let tempId =
           value.idStyle === 0
@@ -297,43 +309,53 @@ export function Articles() {
 
         console.log(tempId);
 
-        let tempStyle = styleArticle(value.id, tempId);
+        let tempStyle = styleUser(value.id, tempId);
 
         console.log(tempStyle);
 
-        let currentArticle = {
-          userId: value.userId,
-          id: value.id,
-          title: value.title,
-          body: value.body,
+        let currentUser = {
+          id: value[i].id,
+          address: value[i].address,
+          company: value[i].company,
+          email: value[i].email,
+          name: value[i].name,
+          phone: value[i].phone,
+          username: value[i].username,
+          website: value[i].website,
           idStyle: tempStyle.id,
           color: tempStyle.color,
           backgroundColor: tempStyle.backgroundColor,
         };
-        return currentArticle;
+        return currentUser;
       } else {
         return value;
       }
     });
-    setArticles(arr);
+    setUsers(arr);
   }
 
-  function showArticle(id) {
+  function showUser(id) {
     toogleModal("modal");
     toogleModalBackground("modalBackground");
     toogleModalClose("modalClose");
 
-    setArticles((value) => {
+    setUsers((value) => {
       let modalTemp = {};
 
       value.map((value) => {
         if (Number(value.id) === id) {
           modalTemp = (
             <>
-              <p>{value.title}</p>
-              <p>{value.body}</p>
+              <p>Name: {value.name}</p>
+              <p>Username: {value.username}</p>
+              <p>Email: {value.email}</p>
+              <p>Phone: {value.phone}</p>
+              <p>Website: {value.website}</p>
+              {/* <p>Adress: {value.adress}</p> */}
+              {/* <p>Company: {value.company}</p> */}
             </>
           );
+          console.log(value.address);
         }
       });
 
@@ -353,19 +375,23 @@ export function Articles() {
   };
 
   async function showMore() {
-    let count = "";
-
-    await setCountArticles((value) => {
-      count = value + 3;
-      return count;
+    await setCountUsers((value) => {
+      console.log(value);
+      return value + 3;
     });
 
-    await getStoredState(count);
+    let currentCount = "";
 
-    // console.log(countArticles);
+    await setCountUsers((value) => {
+      currentCount = value;
+      return value;
+    });
+
+    console.log(currentCount);
+    getStoredState(currentCount);
   }
 
-  const changeArticle = (id) => {
+  const changeUser = (id) => {
     toogleModal("modal hidden");
     toogleModalBackground("modalBackground hidden");
     toogleModalClose("modalClose hidden");
@@ -374,17 +400,25 @@ export function Articles() {
     console.log(refInput.current.value);
     console.log(refTextarea.current.value);
 
-    setArticles((value) => {
+    setUsers((value) => {
       let modalTemp = {};
       let q = "";
 
       modalTemp = value.map((value) => {
         if (Number(value.id) === id) {
           return (q = {
-            userId: value.userId,
-            id: value.id,
-            title: refInput.current.value,
-            body: refTextarea.current.value,
+            // title: refInput.current.value,
+            // body: refTextarea.current.value,
+
+            // ************* тут изменить
+            id: value[i].id,
+            address: value[i].address,
+            company: value[i].company,
+            email: value[i].email,
+            name: value[i].name,
+            phone: value[i].phone,
+            username: value[i].username,
+            website: value[i].website,
             idStyle: value.idStyle,
             color: value.color,
             backgroundColor: value.backgroundColor,
@@ -407,35 +441,28 @@ export function Articles() {
     return temp;
   };
 
-  if (arrArticles !== undefined) {
+  if (arrUsers !== undefined) {
     let arr = [];
 
-    for (let i = 0; i < arrArticles.length; i++) {
+    for (let i = 0; i < arrUsers.length; i++) {
       arr.push(
         <div
           style={styleColorBackground(
-            arrArticles[i].color,
-            arrArticles[i].backgroundColor
+            arrUsers[i].color,
+            arrUsers[i].backgroundColor
           )}
           className="article"
           key={i}
         >
           <div>
-            <p>
-              {arrArticles[i].title.length > 20
-                ? arrArticles[i].title.substring(0, 20) + "..."
-                : arrArticles[i].title}
-            </p>
-            <p>
-              {arrArticles[i].title.length > 80
-                ? arrArticles[i].body.substring(0, 80) + "..."
-                : arrArticles[i].body}
-            </p>
+            <p>Name: {arrUsers[i].name}</p>
+            <p>Email: {arrUsers[i].email}</p>
+            <p>Phone: {arrUsers[i].phone}</p>
           </div>
           <div className="articles__buttons">
             <button
               onClick={() => {
-                showArticle(arrArticles[i].id);
+                showUser(arrUsers[i].id);
               }}
               className="articles__buttons-btn"
             >
@@ -443,7 +470,7 @@ export function Articles() {
             </button>
             <button
               onClick={() => {
-                deleteArticles(arrArticles[i].id);
+                deleteUsers(arrUsers[i].id);
               }}
               className="articles__buttons-btn"
             >
@@ -451,7 +478,7 @@ export function Articles() {
             </button>
             <button
               onClick={() => {
-                updateArticles(arrArticles[i].id);
+                updateUsers(arrUsers[i].id);
               }}
               className="articles__buttons-btn"
             >
@@ -459,7 +486,7 @@ export function Articles() {
             </button>
             <button
               onClick={() => {
-                changeColor(arrArticles[i].id);
+                changeColor(arrUsers[i].id);
               }}
               className="articles__buttons-btn"
             >
@@ -481,10 +508,10 @@ export function Articles() {
         </div>
 
         <div className="header-info">
-          <h1>Article List</h1>
+          <h1>Users List</h1>
           <div className="buttons">
-            <button onClick={addArticles} className="buttons__btn">
-              Add Articles
+            <button onClick={addUserForm} className="buttons__btn">
+              Add User
             </button>
             <button onClick={makeCard} className="buttons__btn">
               {gridTemplate === "30% 30% 30%"
@@ -502,5 +529,5 @@ export function Articles() {
       </>
     );
   }
-  // arrArticles !== undefined ? console.log(arrArticles[0]) : "";
+  // arrUsers !== undefined ? console.log(arrUsers[0]) : "";
 }

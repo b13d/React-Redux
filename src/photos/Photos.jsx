@@ -1,47 +1,32 @@
 import React, { useRef, useState, useEffect } from "react";
 
-import "./articles.scss";
+import "./photos.scss";
 
 import axios from "axios";
 
-let tempAxios = axios
-  .get("https://jsonplaceholder.typicode.com/posts")
-  .then(function (response) {
-    // handle success
-
-    return response.data;
-  })
-  .catch(function (error) {
-    // handle error
-    console.log(error);
-  });
-
-export function Articles() {
-  const [arrArticles, setArticles] = useState(getStoredState);
+export function Photos() {
+  const [arrPhotos, setPhotos] = useState(getStoredState);
   const [modalInfo, setModalInfo] = useState("");
-  const [countArticles, setCountArticles] = useState(3);
+  const [countPhotos, setCountPhotos] = useState(3);
   const [modal, toogleModal] = useState("modal hidden");
   const [modalBackground, toogleModalBackground] = useState(
     "modalBackground hidden"
   );
 
   const [modalClose, toogleModalClose] = useState("modalClose hidden");
-  const [lastId, setLastId] = useState(101);
+  const [lastId, setLastId] = useState(5000);
   const [showMoreBtn, toogleShowMoreBtn] = useState("show-more-btn");
-  const [inputValue, setInputValue] = useState("");
-  const [textareaValue, setTextarea] = useState("");
   const [gridTemplate, setGridTemplate] = useState("30% 30% 30%"); // количество статей в ряд
 
-  const refInput = useRef();
-  const refTextarea = useRef();
-
-  console.log("countArticles = " + countArticles);
+  const refTitleInput = useRef();
+  const refUrlInput = useRef();
+  const refInputLink = useRef();
 
   const styleColumns = {
     gridTemplateColumns: gridTemplate,
   };
 
-  const styleArticle = (id, idStyle) => {
+  const stylePhoto = (id, idStyle) => {
     let ranNumber = Math.floor(Math.random() * 3);
 
     let styleColors = {};
@@ -84,56 +69,68 @@ export function Articles() {
   console.log("первый рендер");
 
   function getStoredState(count) {
-    if (count > 100) {
+    if (count > 4999) {
       toogleShowMoreBtn("show-more-btn hidden");
     }
+
+    let temp = axios
+      .get("https://jsonplaceholder.typicode.com/photos")
+      .then(function (response) {
+        // handle success
+
+        return response.data;
+      })
+      .catch(function (error) {
+        // handle error
+        console.log(error);
+      });
+
     if (count === undefined) {
-      tempAxios.then((data) => {
+      temp.then((data) => {
         let arr = [];
 
-        for (let i = 0; i < countArticles; i++) {
-          let tempAxios = styleArticle(data[i].id);
+        for (let i = 0; i < countPhotos; i++) {
+          let temp = stylePhoto(data[i].id);
 
           // заполнение articles divs *** пометка ***
           arr.push({
-            userId: data[i].userId,
+            albumId: data[i].albumId,
             id: data[i].id,
+            thumbnailUrl: data[i].thumbnailUrl,
             title: data[i].title,
-            body: data[i].body,
-            idStyle: tempAxios.id,
-            color: tempAxios.color,
-            backgroundColor: tempAxios.backgroundColor,
+            url: data[i].url,
+            idStyle: temp.id,
+            color: temp.color,
+            backgroundColor: temp.backgroundColor,
           });
         }
 
         // console.log(data);
-        setArticles(arr);
+        setPhotos(arr);
       });
     } else {
-      tempAxios.then((data) => {
+      temp.then((data) => {
         let arr = [];
 
-        for (let i = arrArticles.length; i < (count > 100 ? 100 : count); i++) {
+        for (let i = countPhotos; i < (count > 4999 ? 5000 : count); i++) {
           // заполнение articles divs *** пометка ***
-          let tempAxios = styleArticle(data[i].id);
-
-          console.log(countArticles);
-          console.log(count);
+          let temp = stylePhoto(data[i].id);
 
           arr.push({
-            userId: data[i].userId,
+            albumId: data[i].albumId,
             id: data[i].id,
+            thumbnailUrl: data[i].thumbnailUrl,
             title: data[i].title,
-            body: data[i].body,
-            idStyle: tempAxios.id,
-            color: tempAxios.color,
-            backgroundColor: tempAxios.backgroundColor,
+            url: data[i].url,
+            idStyle: temp.id,
+            color: temp.color,
+            backgroundColor: temp.backgroundColor,
           });
         }
 
         // console.log(data);
-        setArticles((arrArticles) => {
-          let temp = [...arrArticles, ...arr];
+        setPhotos((arrPhotos) => {
+          let temp = [...arrPhotos, ...arr];
           return temp;
         });
       });
@@ -147,7 +144,7 @@ export function Articles() {
     });
   }
 
-  async function addArticles() {
+  async function addPhotoForm() {
     toogleModal("modal");
     toogleModalBackground("modalBackground");
     toogleModalClose("modalClose");
@@ -156,31 +153,28 @@ export function Articles() {
 
     modalTemp = (
       <>
-        <label>Title: </label>
-        <input ref={refInput} type="text" />
-        <label>Body: </label>
-        <textarea ref={refTextarea} rows={5} type="text" />
-        <button onClick={() => addArt()}>Create</button>
+        <label>title: </label>
+        <input ref={refTitleInput} type="text" />
+        <label>url: </label>
+        <input ref={refUrlInput} type="email" />
+
+        <button onClick={() => addPhoto()}>Create</button>
       </>
     );
 
-    function addArt() {
+    async function addPhoto() {
       toogleModal("modal hidden");
       toogleModalBackground("modalBackground hidden");
       toogleModalClose("modalClose hidden");
 
-      setArticles((value) => {
-        console.log(refInput.current.value);
-        console.log(refTextarea.current.value);
-
+      await setPhotos((value) => {
         let arr = [];
-        let tempStyle = styleArticle(lastId);
+        let tempStyle = stylePhoto(lastId);
 
         let temp = {
-          userId: 10,
           id: lastId,
-          title: refInput.current.value,
-          body: refTextarea.current.value,
+          title: refTitleInput.current.value,
+          url: refUrlInput.current.value,
           idStyle: tempStyle.id,
           color: tempStyle.color,
           backgroundColor: tempStyle.backgroundColor,
@@ -194,6 +188,8 @@ export function Articles() {
 
         return arr;
       });
+
+      setLastId((value) => value + 1);
     }
 
     console.log(modalTemp);
@@ -201,15 +197,16 @@ export function Articles() {
     setModalInfo(modalTemp);
   }
 
-  async function updateArticles(id) {
+  async function updatePhoto(id) {
     toogleModal("modal");
     toogleModalBackground("modalBackground");
     toogleModalClose("modalClose");
 
-    setArticles((value) => {
+    setPhotos((value) => {
       let modalTemp = {};
       let valueInput = "";
       let valueTextarea = "";
+
 
       value.map((value) => {
         if (Number(value.id) === id) {
@@ -218,23 +215,14 @@ export function Articles() {
               <label>Title: </label>
               <input
                 defaultValue={value.title}
-                ref={refInput}
+                ref={refTitleInput}
                 type="text"
-                value={setInputValue((q) => {
-                  return value.title;
-                })}
               />
-              <label>Body: </label>
-              <textarea
-                defaultValue={value.body}
-                ref={refTextarea}
-                rows={5}
-                type="text"
-                value={setInputValue((q) => {
-                  return value.body;
-                })}
-              />
-              <button onClick={() => changeArticle(value.id)}>Update</button>
+              <label>Photo: </label>
+              <img src={value.url} alt="photo" />
+              <label>Ссылка на фото</label>
+              <input ref={refInputLink} type="text" />
+              <input type="submit" onClick={() => changePhoto(value.id)} />
             </>
           );
         }
@@ -248,7 +236,7 @@ export function Articles() {
     });
   }
 
-  function deleteArticles(id) {
+  function deletePhotos(id) {
     toogleModal("modal");
     toogleModalBackground("modalBackground");
     toogleModalClose("modalClose");
@@ -256,15 +244,15 @@ export function Articles() {
     let modalTemp = (
       <>
         <label>Вы действительно хотите удалить эту запись?</label>
-        <button onClick={() => deleteArticle(true)}>Да</button>
+        <button onClick={() => deletePhoto(true)}>Да</button>
         <button onClick={() => closeModal(false)}>Нет</button>
       </>
     );
 
     setModalInfo(modalTemp);
 
-    let deleteArticle = () => {
-      setArticles((value) => {
+    let deletePhoto = () => {
+      setPhotos((value) => {
         let arr = [];
 
         value.map((value) => {
@@ -284,7 +272,7 @@ export function Articles() {
   }
 
   function changeColor(id) {
-    let arr = arrArticles.map((value, index) => {
+    let arr = arrPhotos.map((value, index) => {
       if (value.id === id) {
         let tempId =
           value.idStyle === 0
@@ -296,44 +284,45 @@ export function Articles() {
             : 1;
 
         console.log(tempId);
+        console.log(value);
 
-        let tempStyle = styleArticle(value.id, tempId);
+        let tempStyle = stylePhoto(value.id, tempId);
 
         console.log(tempStyle);
 
-        let currentArticle = {
-          userId: value.userId,
+        let currentPhoto = {
           id: value.id,
           title: value.title,
-          body: value.body,
+          url: value.url,
           idStyle: tempStyle.id,
           color: tempStyle.color,
           backgroundColor: tempStyle.backgroundColor,
         };
-        return currentArticle;
+        return currentPhoto;
       } else {
         return value;
       }
     });
-    setArticles(arr);
+    setPhotos(arr);
   }
 
-  function showArticle(id) {
+  function showPhoto(id) {
     toogleModal("modal");
     toogleModalBackground("modalBackground");
     toogleModalClose("modalClose");
 
-    setArticles((value) => {
+    setPhotos((value) => {
       let modalTemp = {};
 
       value.map((value) => {
         if (Number(value.id) === id) {
           modalTemp = (
             <>
-              <p>{value.title}</p>
-              <p>{value.body}</p>
+              <p>Title: {value.title}</p>
+              <img src={value.url} alt="photo" />
             </>
           );
+          console.log(value.address);
         }
       });
 
@@ -353,38 +342,45 @@ export function Articles() {
   };
 
   async function showMore() {
-    let count = "";
-
-    await setCountArticles((value) => {
-      count = value + 3;
-      return count;
+    await setCountPhotos((value) => {
+      console.log(value);
+      return value + 3;
     });
 
-    await getStoredState(count);
+    let currentCount = "";
 
-    // console.log(countArticles);
+    await setCountPhotos((value) => {
+      currentCount = value;
+      return value;
+    });
+
+    console.log(currentCount);
+    getStoredState(currentCount);
   }
 
-  const changeArticle = (id) => {
+  const changePhoto = (id) => {
     toogleModal("modal hidden");
     toogleModalBackground("modalBackground hidden");
     toogleModalClose("modalClose hidden");
     setModalInfo("");
 
-    console.log(refInput.current.value);
-    console.log(refTextarea.current.value);
 
-    setArticles((value) => {
+    console.log(refInputLink.current.value)
+
+    setPhotos((value) => {
       let modalTemp = {};
       let q = "";
 
       modalTemp = value.map((value) => {
         if (Number(value.id) === id) {
           return (q = {
-            userId: value.userId,
+            // title: refInput.current.value,
+            // body: refTextarea.current.value,
+
+            // ************* тут изменить
             id: value.id,
-            title: refInput.current.value,
-            body: refTextarea.current.value,
+            title: refTitleInput.current.value,
+            url: refInputLink.current.value,
             idStyle: value.idStyle,
             color: value.color,
             backgroundColor: value.backgroundColor,
@@ -407,35 +403,27 @@ export function Articles() {
     return temp;
   };
 
-  if (arrArticles !== undefined) {
+  if (arrPhotos !== undefined) {
     let arr = [];
 
-    for (let i = 0; i < arrArticles.length; i++) {
+    for (let i = 0; i < arrPhotos.length; i++) {
       arr.push(
         <div
           style={styleColorBackground(
-            arrArticles[i].color,
-            arrArticles[i].backgroundColor
+            arrPhotos[i].color,
+            arrPhotos[i].backgroundColor
           )}
           className="article"
           key={i}
         >
-          <div>
-            <p>
-              {arrArticles[i].title.length > 20
-                ? arrArticles[i].title.substring(0, 20) + "..."
-                : arrArticles[i].title}
-            </p>
-            <p>
-              {arrArticles[i].title.length > 80
-                ? arrArticles[i].body.substring(0, 80) + "..."
-                : arrArticles[i].body}
-            </p>
+          <div className="form-photo">
+            <p>Title: {arrPhotos[i].title}</p>
+            <img className="photo" src={arrPhotos[i].url} alt="photo" />
           </div>
           <div className="articles__buttons">
             <button
               onClick={() => {
-                showArticle(arrArticles[i].id);
+                showPhoto(arrPhotos[i].id);
               }}
               className="articles__buttons-btn"
             >
@@ -443,7 +431,7 @@ export function Articles() {
             </button>
             <button
               onClick={() => {
-                deleteArticles(arrArticles[i].id);
+                deletePhotos(arrPhotos[i].id);
               }}
               className="articles__buttons-btn"
             >
@@ -451,7 +439,7 @@ export function Articles() {
             </button>
             <button
               onClick={() => {
-                updateArticles(arrArticles[i].id);
+                updatePhoto(arrPhotos[i].id);
               }}
               className="articles__buttons-btn"
             >
@@ -459,7 +447,7 @@ export function Articles() {
             </button>
             <button
               onClick={() => {
-                changeColor(arrArticles[i].id);
+                changeColor(arrPhotos[i].id);
               }}
               className="articles__buttons-btn"
             >
@@ -481,10 +469,10 @@ export function Articles() {
         </div>
 
         <div className="header-info">
-          <h1>Article List</h1>
+          <h1>Photos List</h1>
           <div className="buttons">
-            <button onClick={addArticles} className="buttons__btn">
-              Add Articles
+            <button onClick={addPhotoForm} className="buttons__btn">
+              Add Photo
             </button>
             <button onClick={makeCard} className="buttons__btn">
               {gridTemplate === "30% 30% 30%"
@@ -502,5 +490,5 @@ export function Articles() {
       </>
     );
   }
-  // arrArticles !== undefined ? console.log(arrArticles[0]) : "";
+  // arrPhotos !== undefined ? console.log(arrPhotos[0]) : "";
 }

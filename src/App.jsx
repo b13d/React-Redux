@@ -7,8 +7,8 @@ import {
 } from "react-router-dom";
 import React, { useState } from "react";
 
-import { Users } from "./articles/Users";
-import { Photos } from "./articles/Photos";
+import { Users } from "./users/Users";
+import { Photos } from "./photos/Photos";
 import { Articles } from "./articles/Articles";
 import { NotFoundPage } from "./articles/NotFoundPage";
 import { Navbar } from "./app/Navbar";
