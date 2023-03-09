@@ -1,14 +1,20 @@
 import React, { useRef, useState, useEffect } from "react";
-
-import "./articles.scss";
-
+import {
+  articlesAdd,
+  articlesEdit,
+  articlesDelete,
+  articlesAllAdd,
+} from "../articles/articlesSlice";
+import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
+import "./articles.scss";
 
 let tempAxios = axios
   .get("https://jsonplaceholder.typicode.com/posts")
   .then(function (response) {
     // handle success
 
+    // console.log(response.data)
     return response.data;
   })
   .catch(function (error) {
@@ -34,8 +40,8 @@ export function Articles() {
 
   const refInput = useRef();
   const refTextarea = useRef();
-
-  console.log("countArticles = " + countArticles);
+  const dispatch = useDispatch();
+  const articlesSelector = useSelector((state) => state.articles.articles);
 
   const styleColumns = {
     gridTemplateColumns: gridTemplate,
@@ -81,12 +87,11 @@ export function Articles() {
     return styleColors;
   };
 
-  console.log("первый рендер");
-
   function getStoredState(count) {
     if (count > 100) {
       toogleShowMoreBtn("show-more-btn hidden");
     }
+
     if (count === undefined) {
       tempAxios.then((data) => {
         let arr = [];
@@ -107,13 +112,20 @@ export function Articles() {
         }
 
         // console.log(data);
-        setArticles(arr);
+
+        if (
+          articlesSelector[0] === undefined ||
+          articlesSelector[0].length === 0
+        ) {
+          setArticles(arr);
+          dispatch(articlesAllAdd(arr));
+        }
       });
     } else {
       tempAxios.then((data) => {
         let arr = [];
 
-        for (let i = arrArticles.length; i < (count > 100 ? 100 : count); i++) {
+        for (let i = count - 3; i < (count > 100 ? 100 : count); i++) {
           // заполнение articles divs *** пометка ***
           let tempAxios = styleArticle(data[i].id);
 
@@ -134,6 +146,11 @@ export function Articles() {
         // console.log(data);
         setArticles((arrArticles) => {
           let temp = [...arrArticles, ...arr];
+          // dispatch(articlesAdd(temp));
+
+          // console.log(q)
+          dispatch(articlesAllAdd(temp));
+
           return temp;
         });
       });
@@ -169,31 +186,21 @@ export function Articles() {
       toogleModalBackground("modalBackground hidden");
       toogleModalClose("modalClose hidden");
 
-      setArticles((value) => {
-        console.log(refInput.current.value);
-        console.log(refTextarea.current.value);
+      const { id, color, backgroundColor } = styleArticle();
 
-        let arr = [];
-        let tempStyle = styleArticle(lastId);
+      let temp = {
+        userId: 10,
+        id: lastId,
+        title: refInput.current.value,
+        body: refTextarea.current.value,
+        idStyle: id,
+        color: color,
+        backgroundColor: backgroundColor,
+      };
 
-        let temp = {
-          userId: 10,
-          id: lastId,
-          title: refInput.current.value,
-          body: refTextarea.current.value,
-          idStyle: tempStyle.id,
-          color: tempStyle.color,
-          backgroundColor: tempStyle.backgroundColor,
-        };
+      dispatch(articlesAdd(temp));
 
-        value.map((value, index) => {
-          arr.push(value);
-        });
-
-        arr.push(temp);
-
-        return arr;
-      });
+      setLastId((value) => value + 1);
     }
 
     console.log(modalTemp);
@@ -240,8 +247,6 @@ export function Articles() {
         }
       });
 
-      console.log(modalTemp);
-
       setModalInfo(modalTemp);
 
       return value;
@@ -256,28 +261,15 @@ export function Articles() {
     let modalTemp = (
       <>
         <label>Вы действительно хотите удалить эту запись?</label>
-        <button onClick={() => deleteArticle(true)}>Да</button>
+        <button onClick={() => deleteArticle(id)}>Да</button>
         <button onClick={() => closeModal(false)}>Нет</button>
       </>
     );
 
     setModalInfo(modalTemp);
 
-    let deleteArticle = () => {
-      setArticles((value) => {
-        let arr = [];
-
-        value.map((value) => {
-          if (Number(value.id) === id) {
-          } else {
-            arr.push(value);
-          }
-        });
-
-        console.log(arr);
-
-        return arr;
-      });
+    let deleteArticle = (id) => {
+      dispatch(articlesDelete({ id }));
 
       closeModal();
     };
@@ -365,38 +357,25 @@ export function Articles() {
     // console.log(countArticles);
   }
 
-  const changeArticle = (id) => {
+  // change articles
+  useEffect(() => {
+    setArticles(articlesSelector[0]);
+  }, [articlesSelector]);
+
+  function changeArticle(id) {
     toogleModal("modal hidden");
     toogleModalBackground("modalBackground hidden");
     toogleModalClose("modalClose hidden");
     setModalInfo("");
 
-    console.log(refInput.current.value);
-    console.log(refTextarea.current.value);
+    let temp = {
+      id: id,
+      title: refInput.current.value,
+      body: refTextarea.current.value,
+    };
 
-    setArticles((value) => {
-      let modalTemp = {};
-      let q = "";
-
-      modalTemp = value.map((value) => {
-        if (Number(value.id) === id) {
-          return (q = {
-            userId: value.userId,
-            id: value.id,
-            title: refInput.current.value,
-            body: refTextarea.current.value,
-            idStyle: value.idStyle,
-            color: value.color,
-            backgroundColor: value.backgroundColor,
-          });
-        } else {
-          return value;
-        }
-      });
-
-      return modalTemp;
-    });
-  };
+    dispatch(articlesEdit(temp));
+  }
 
   const styleColorBackground = (color, background) => {
     let temp = {
@@ -502,5 +481,4 @@ export function Articles() {
       </>
     );
   }
-  // arrArticles !== undefined ? console.log(arrArticles[0]) : "";
 }

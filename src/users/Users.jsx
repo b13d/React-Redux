@@ -1,8 +1,27 @@
 import React, { useRef, useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  usersAllAdd,
+  usersAdd,
+  usersEdit,
+  usersDelete,
+} from "../users/usersSlice";
 
 import "./users.scss";
 
 import axios from "axios";
+
+let temp = axios
+  .get("https://jsonplaceholder.typicode.com/users")
+  .then(function (response) {
+    // handle success
+
+    return response.data;
+  })
+  .catch(function (error) {
+    // handle error
+    console.log(error);
+  });
 
 export function Users() {
   const [arrUsers, setUsers] = useState(getStoredState);
@@ -23,6 +42,9 @@ export function Users() {
   const refPhoneInput = useRef();
   const refUsernameInput = useRef();
   const refWebsiteInput = useRef();
+
+  const dispatch = useDispatch();
+  const usersSelector = useSelector((state) => state.users.users);
 
   const styleColumns = {
     gridTemplateColumns: gridTemplate,
@@ -68,24 +90,11 @@ export function Users() {
     return styleColors;
   };
 
-  console.log("первый рендер");
 
   function getStoredState(count) {
     if (count > 10) {
       toogleShowMoreBtn("show-more-btn hidden");
     }
-
-    let temp = axios
-      .get("https://jsonplaceholder.typicode.com/users")
-      .then(function (response) {
-        // handle success
-
-        return response.data;
-      })
-      .catch(function (error) {
-        // handle error
-        console.log(error);
-      });
 
     if (count === undefined) {
       temp.then((data) => {
@@ -111,13 +120,16 @@ export function Users() {
         }
 
         // console.log(data);
-        setUsers(arr);
+        if (usersSelector[0] === undefined || usersSelector[0].length === 0) {
+          setUsers(arr);
+          dispatch(usersAllAdd(arr));
+        }
       });
     } else {
       temp.then((data) => {
         let arr = [];
 
-        for (let i = countUsers; i < (count > 10 ? 10 : count); i++) {
+        for (let i = count - 3; i < (count > 10 ? 10 : count); i++) {
           // заполнение articles divs *** пометка ***
           let temp = styleUser(data[i].id);
 
@@ -139,6 +151,9 @@ export function Users() {
         // console.log(data);
         setUsers((arrUsers) => {
           let temp = [...arrUsers, ...arr];
+
+          dispatch(usersAllAdd(temp));
+
           return temp;
         });
       });
@@ -151,6 +166,10 @@ export function Users() {
       return temp;
     });
   }
+
+  useEffect(() => {
+    setUsers(usersSelector[0]);
+  }, [usersSelector]);
 
   async function addUserForm() {
     toogleModal("modal");
@@ -180,35 +199,25 @@ export function Users() {
       toogleModalBackground("modalBackground hidden");
       toogleModalClose("modalClose hidden");
 
-      await setUsers((value) => {
-        let arr = [];
-        let tempStyle = styleUser(lastId);
+      const { id, color, backgroundColor } = styleUser();
 
-        let temp = {
-          id: lastId,
-          email: refEmailInput.current.value,
-          name: refNameInput.current.value,
-          phone: refPhoneInput.current.value,
-          username: refUsernameInput.current.value,
-          website: refWebsiteInput.current.value,
-          idStyle: tempStyle.id,
-          color: tempStyle.color,
-          backgroundColor: tempStyle.backgroundColor,
-        };
+      let temp = {
+        id: lastId,
+        email: refEmailInput.current.value,
+        name: refNameInput.current.value,
+        phone: refPhoneInput.current.value,
+        username: refUsernameInput.current.value,
+        website: refWebsiteInput.current.value,
+        idStyle: id,
+        color: color,
+        backgroundColor: backgroundColor,
+      };
 
-        value.map((value, index) => {
-          arr.push(value);
-        });
-
-        arr.push(temp);
-
-        return arr;
-      });
-
+      dispatch(usersAdd(temp));
       setLastId((value) => value + 1);
     }
 
-    console.log(modalTemp);
+    // console.log(modalTemp);
 
     setModalInfo(modalTemp);
   }
@@ -224,35 +233,44 @@ export function Users() {
       let valueTextarea = "";
 
       value.map((value) => {
+        // console.log(value);
         if (Number(value.id) === id) {
           modalTemp = (
             <>
-              <label>Title: </label>
+              <label>Name: </label>
+              <input defaultValue={value.name} ref={refNameInput} type="text" />
+              <label>Email: </label>
               <input
-                defaultValue={value.title}
-                ref={refInput}
-                type="text"
-                value={setInputValue((q) => {
-                  return value.title;
-                })}
+                defaultValue={value.email}
+                ref={refEmailInput}
+                type="email"
               />
-              <label>Body: </label>
-              <textarea
-                defaultValue={value.body}
-                ref={refTextarea}
-                rows={5}
-                type="text"
-                value={setInputValue((q) => {
-                  return value.body;
-                })}
+              <label>Phone: </label>
+              <input
+                defaultValue={value.phone}
+                ref={refPhoneInput}
+                type="phone"
               />
+              <label>Username: </label>
+              <input
+                defaultValue={value.username}
+                ref={refUsernameInput}
+                type="text"
+              />
+              <label>Website: </label>
+              <input
+                defaultValue={value.website}
+                ref={refWebsiteInput}
+                type="text"
+              />
+
               <button onClick={() => changeUser(value.id)}>Update</button>
             </>
           );
         }
       });
 
-      console.log(modalTemp);
+      // console.log(modalTemp);
 
       setModalInfo(modalTemp);
 
@@ -268,28 +286,15 @@ export function Users() {
     let modalTemp = (
       <>
         <label>Вы действительно хотите удалить эту запись?</label>
-        <button onClick={() => deleteUser(true)}>Да</button>
+        <button onClick={() => deleteUser(id)}>Да</button>
         <button onClick={() => closeModal(false)}>Нет</button>
       </>
     );
 
     setModalInfo(modalTemp);
 
-    let deleteUser = () => {
-      setUsers((value) => {
-        let arr = [];
-
-        value.map((value) => {
-          if (Number(value.id) === id) {
-          } else {
-            arr.push(value);
-          }
-        });
-
-        console.log(arr);
-
-        return arr;
-      });
+    let deleteUser = (id) => {
+      dispatch(usersDelete({ id }));
 
       closeModal();
     };
@@ -307,21 +312,21 @@ export function Users() {
             ? 0
             : 1;
 
-        console.log(tempId);
+        // console.log(tempId);
 
         let tempStyle = styleUser(value.id, tempId);
 
-        console.log(tempStyle);
+        // console.log(tempStyle);
 
         let currentUser = {
-          id: value[i].id,
-          address: value[i].address,
-          company: value[i].company,
-          email: value[i].email,
-          name: value[i].name,
-          phone: value[i].phone,
-          username: value[i].username,
-          website: value[i].website,
+          id: value.id,
+          address: value.address,
+          company: value.company,
+          email: value.email,
+          name: value.name,
+          phone: value.phone,
+          username: value.username,
+          website: value.website,
           idStyle: tempStyle.id,
           color: tempStyle.color,
           backgroundColor: tempStyle.backgroundColor,
@@ -355,7 +360,7 @@ export function Users() {
               {/* <p>Company: {value.company}</p> */}
             </>
           );
-          console.log(value.address);
+          // console.log(value.address);
         }
       });
 
@@ -387,7 +392,7 @@ export function Users() {
       return value;
     });
 
-    console.log(currentCount);
+    // console.log(currentCount);
     getStoredState(currentCount);
   }
 
@@ -397,38 +402,30 @@ export function Users() {
     toogleModalClose("modalClose hidden");
     setModalInfo("");
 
-    console.log(refInput.current.value);
-    console.log(refTextarea.current.value);
+    refNameInput;
+    refEmailInput;
+    refPhoneInput;
+    refUsernameInput;
+    refWebsiteInput;
 
-    setUsers((value) => {
-      let modalTemp = {};
-      let q = "";
+    arrUsers.map((value) => {
+      if (value.id === id) {
+        let temp = {
+          id: value.id,
+          address: value.address !== undefined ? value.address : "",
+          company: value.company !== undefined ? value.company : "",
+          email: refEmailInput.current.value.trim(),
+          name: refNameInput.current.value.trim(),
+          phone: refPhoneInput.current.value.trim(),
+          username: refUsernameInput.current.value.trim(),
+          website: refWebsiteInput.current.value.trim(),
+          idStyle: value.idStyle,
+          color: value.color,
+          backgroundColor: value.backgroundColor,
+        };
 
-      modalTemp = value.map((value) => {
-        if (Number(value.id) === id) {
-          return (q = {
-            // title: refInput.current.value,
-            // body: refTextarea.current.value,
-
-            // ************* тут изменить
-            id: value[i].id,
-            address: value[i].address,
-            company: value[i].company,
-            email: value[i].email,
-            name: value[i].name,
-            phone: value[i].phone,
-            username: value[i].username,
-            website: value[i].website,
-            idStyle: value.idStyle,
-            color: value.color,
-            backgroundColor: value.backgroundColor,
-          });
-        } else {
-          return value;
-        }
-      });
-
-      return modalTemp;
+        dispatch(usersEdit(temp));
+      }
     });
   };
 

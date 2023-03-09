@@ -1,8 +1,27 @@
 import React, { useRef, useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  photosAllAdd,
+  photosAdd,
+  photosEdit,
+  photosDelete,
+} from "../photos/photosSlice";
 
 import "./photos.scss";
 
 import axios from "axios";
+
+let temp = axios
+  .get("https://jsonplaceholder.typicode.com/photos")
+  .then(function (response) {
+    // handle success
+
+    return response.data;
+  })
+  .catch(function (error) {
+    // handle error
+    console.log(error);
+  });
 
 export function Photos() {
   const [arrPhotos, setPhotos] = useState(getStoredState);
@@ -21,6 +40,9 @@ export function Photos() {
   const refTitleInput = useRef();
   const refUrlInput = useRef();
   const refInputLink = useRef();
+
+  const dispatch = useDispatch();
+  const photosSelector = useSelector((state) => state.photos.photos);
 
   const styleColumns = {
     gridTemplateColumns: gridTemplate,
@@ -66,24 +88,11 @@ export function Photos() {
     return styleColors;
   };
 
-  console.log("первый рендер");
 
   function getStoredState(count) {
     if (count > 4999) {
       toogleShowMoreBtn("show-more-btn hidden");
     }
-
-    let temp = axios
-      .get("https://jsonplaceholder.typicode.com/photos")
-      .then(function (response) {
-        // handle success
-
-        return response.data;
-      })
-      .catch(function (error) {
-        // handle error
-        console.log(error);
-      });
 
     if (count === undefined) {
       temp.then((data) => {
@@ -105,8 +114,11 @@ export function Photos() {
           });
         }
 
+        if (photosSelector[0] === undefined || photosSelector[0].length === 0) {
+          setPhotos(arr);
+          dispatch(photosAllAdd(arr));
+        }
         // console.log(data);
-        setPhotos(arr);
       });
     } else {
       temp.then((data) => {
@@ -131,6 +143,9 @@ export function Photos() {
         // console.log(data);
         setPhotos((arrPhotos) => {
           let temp = [...arrPhotos, ...arr];
+
+          dispatch(photosAllAdd(temp));
+
           return temp;
         });
       });
@@ -143,6 +158,10 @@ export function Photos() {
       return temp;
     });
   }
+
+  useEffect(() => {
+    setPhotos(photosSelector[0]);
+  }, [photosSelector]);
 
   async function addPhotoForm() {
     toogleModal("modal");
@@ -167,27 +186,18 @@ export function Photos() {
       toogleModalBackground("modalBackground hidden");
       toogleModalClose("modalClose hidden");
 
-      await setPhotos((value) => {
-        let arr = [];
-        let tempStyle = stylePhoto(lastId);
+      const { id, color, backgroundColor } = stylePhoto();
 
-        let temp = {
-          id: lastId,
-          title: refTitleInput.current.value,
-          url: refUrlInput.current.value,
-          idStyle: tempStyle.id,
-          color: tempStyle.color,
-          backgroundColor: tempStyle.backgroundColor,
-        };
+      let temp = {
+        id: lastId,
+        title: refTitleInput.current.value,
+        url: refUrlInput.current.value,
+        idStyle: id,
+        color: color,
+        backgroundColor: backgroundColor,
+      };
 
-        value.map((value, index) => {
-          arr.push(value);
-        });
-
-        arr.push(temp);
-
-        return arr;
-      });
+      dispatch(photosAdd(temp));
 
       setLastId((value) => value + 1);
     }
@@ -204,9 +214,6 @@ export function Photos() {
 
     setPhotos((value) => {
       let modalTemp = {};
-      let valueInput = "";
-      let valueTextarea = "";
-
 
       value.map((value) => {
         if (Number(value.id) === id) {
@@ -228,8 +235,6 @@ export function Photos() {
         }
       });
 
-      console.log(modalTemp);
-
       setModalInfo(modalTemp);
 
       return value;
@@ -244,28 +249,15 @@ export function Photos() {
     let modalTemp = (
       <>
         <label>Вы действительно хотите удалить эту запись?</label>
-        <button onClick={() => deletePhoto(true)}>Да</button>
+        <button onClick={() => deletePhoto(id)}>Да</button>
         <button onClick={() => closeModal(false)}>Нет</button>
       </>
     );
 
     setModalInfo(modalTemp);
 
-    let deletePhoto = () => {
-      setPhotos((value) => {
-        let arr = [];
-
-        value.map((value) => {
-          if (Number(value.id) === id) {
-          } else {
-            arr.push(value);
-          }
-        });
-
-        console.log(arr);
-
-        return arr;
-      });
+    let deletePhoto = (id) => {
+      dispatch(photosDelete({ id }));
 
       closeModal();
     };
@@ -326,8 +318,6 @@ export function Photos() {
         }
       });
 
-      console.log(modalTemp);
-
       setModalInfo(modalTemp);
       return value;
     });
@@ -364,33 +354,21 @@ export function Photos() {
     toogleModalClose("modalClose hidden");
     setModalInfo("");
 
+    console.log();
 
-    console.log(refInputLink.current.value)
+    arrPhotos.map((value) => {
+      if (Number(value.id) === id) {
+        let temp = {
+          id: value.id,
+          title: refTitleInput.current.value,
+          url: refInputLink.current.value,
+          idStyle: value.idStyle,
+          color: value.color,
+          backgroundColor: value.backgroundColor,
+        };
 
-    setPhotos((value) => {
-      let modalTemp = {};
-      let q = "";
-
-      modalTemp = value.map((value) => {
-        if (Number(value.id) === id) {
-          return (q = {
-            // title: refInput.current.value,
-            // body: refTextarea.current.value,
-
-            // ************* тут изменить
-            id: value.id,
-            title: refTitleInput.current.value,
-            url: refInputLink.current.value,
-            idStyle: value.idStyle,
-            color: value.color,
-            backgroundColor: value.backgroundColor,
-          });
-        } else {
-          return value;
-        }
-      });
-
-      return modalTemp;
+        dispatch(photosEdit(temp));
+      }
     });
   };
 
@@ -407,6 +385,7 @@ export function Photos() {
     let arr = [];
 
     for (let i = 0; i < arrPhotos.length; i++) {
+      // console.log(arrPhotos)
       arr.push(
         <div
           style={styleColorBackground(

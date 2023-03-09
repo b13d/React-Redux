@@ -4,66 +4,53 @@ const articlesSlice = createSlice({
   name: "articles",
   initialState: {
     articles: [],
-    articlesStyle: [],
   },
   reducers: {
-    articlesAdded(state, action) {
-      const { titleValue, bodyValue } = action.payload;
+    articlesAllAdd(state, action) {
+      // console.log(action.payload)
+      state.articles.length = 0;
 
-      if (titleValue !== undefined) {
-        state.articles[0].push(titleValue);
-        state.articles[1].push(bodyValue);
-      } else {
-        console.log('asadsad')
-        state.articles.push(action.payload);
-      }
+      state.articles.push(action.payload);
     },
-    articlesUpdate(state, action) {
+    articlesAdd(state, action) {
+      state.articles[0].push(action.payload)
+    },
+    articlesEdit(state, action) {
       const { id, title, body } = action.payload;
 
-      const articleUpdateCurrentTitle = state.articles[0].find(
-        (article) => article.id === id
-      );
-      const articleUpdateCurrentBody = state.articles[1].find(
-        (article) => article.id === id
-      );
+      state.articles.filter((articles) => {
+        articles.map((value, index) => {
+          if (value.id === id) {
+            value.title = title;
+            value.body = body;
+          }
+        });
+      });
 
-      if (articleUpdateCurrentTitle && articleUpdateCurrentBody) {
-        articleUpdateCurrentTitle.content = title;
-        articleUpdateCurrentBody.content = body;
-      }
+      // console.log(id)
     },
-    articlesAddStyle(state, action) {
-      const { id, content } = action.payload;
-
-      if (id !== undefined) {
-        state.articlesStyle[0].push(action.payload);
-      } else state.articlesStyle.push(action.payload);
-    },
-    articlesUpdateStyle(state, action) {
-      const { id, content } = action.payload;
-
-      const currentStyle = state.articlesStyle[0].find(
-        (style) => style.id === id
-      );
-
-      if (currentStyle) {
-        currentStyle.content = content;
-      }
-    },
-    articleDelete(state, action) {
+    articlesDelete(state, action) {
       const { id } = action.payload;
+      let arr = []
 
+      state.articles.filter((articles) => {
+        articles.map((value) => {
+          if (value.id === id) {
+
+          }
+          else {
+            arr.push(value)
+          }
+        })
+
+        state.articles.length = 0
+        state.articles.push(arr);
+      })
     },
   },
 });
 
-export const {
-  articlesAdded,
-  articlesUpdate,
-  articlesAddStyle,
-  articlesUpdateStyle,
-  articleDelete,
-} = articlesSlice.actions;
+export const { articlesAllAdd, articlesAdd, articlesEdit, articlesDelete } =
+  articlesSlice.actions;
 
 export default articlesSlice.reducer;
